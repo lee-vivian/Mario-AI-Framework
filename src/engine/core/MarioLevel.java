@@ -54,6 +54,34 @@ public class MarioLevel {
         for (int y = 0; y < lines.length; y++) {
             for (int x = 0; x < lines[y].length(); x++) {
                 Character c = lines[y].charAt(x);
+
+                switch (c) {
+                    case '*':  // start tile
+                        this.marioTileX = x;
+                        this.marioTileY = y;
+                        marioLocInit = true;
+                        break;
+                    case '!':  // goal tile
+                        this.exitTileX = x;
+                        this.exitTileY = y;
+                        exitLocInit = true;
+                        break;
+                    case 'W':  // border tile
+                        this.levelTiles[x][y] = 1;
+                        break;
+                    case 'X':  // platform tile
+                        this.levelTiles[x][y] = 6;
+                        break;
+                    case '?': // bonus tile
+                        this.totalCoins += 1;
+                        this.levelTiles[x][y] = 11;
+                        break;
+                    case 'H': // hazard tile
+                        this.spriteTemplates[x][y] = SpriteType.SPIKY;
+                        break;
+                }
+
+                /*
                 switch (c) {
                     case 'M':
                         this.marioTileX = x;
@@ -247,6 +275,7 @@ public class MarioLevel {
                         this.levelTiles[x][y] = 21;
                         break;
                 }
+                */
             }
         }
         if (!marioLocInit) {
