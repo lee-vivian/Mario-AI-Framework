@@ -7,9 +7,17 @@ import java.awt.event.KeyAdapter;
 
 import javax.swing.JFrame;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.LinkedList;
+
 import agents.human.Agent;
 import engine.helper.GameStatus;
 import engine.helper.MarioActions;
+
+import graph.DiGraph;
 
 public class MarioGame {
     /**
@@ -192,6 +200,24 @@ public class MarioGame {
     }
 
     /**
+     * Enumerate a certain mario level
+     */
+    public DiGraph enumerateGame(String level) {
+
+        HashMap<Integer, boolean[]> possibleActions = new HashMap<>();
+        possibleActions.put(-1, new boolean[]{true, false, false, false, false});  // left
+        possibleActions.put(-2, new boolean[]{true, false, false, false, true});  // left jump
+        possibleActions.put(-3, new boolean[]{true, false, false, true, false});  // left run
+        possibleActions.put(-4, new boolean[]{true, false, false, true, true});  // left jump run
+        possibleActions.put(1, new boolean[]{false, true, false, false, false});  // right
+        possibleActions.put(2, new boolean[]{false, true, false, false, true});  // right jump
+        possibleActions.put(3, new boolean[]{false, true, false, true, false});  // right run
+        possibleActions.put(4, new boolean[]{false, true, false, true, true});  // right jump run
+
+        return this.enumerateLoop(level, possibleActions);
+    }
+
+    /**
      * Run a certain mario level with a certain agent
      *
      * @param agent      the current AI agent used to play the game
@@ -216,6 +242,54 @@ public class MarioGame {
         }
         this.setAgent(agent);
         return this.gameLoop(level, timer, marioState, visuals, fps);
+    }
+
+    private DiGraph enumerateLoop(String level, Map<Integer, boolean[]> possibleActions) {
+        this.world = new MarioWorld(new MarioEvent[]{});
+        this.world.visuals = false;
+        this.world.initializeLevel(level, 10000);  // set timer to arbitrarily large number
+        this.world.update(new boolean[MarioActions.numberOfActions()]);
+
+        DiGraph graph = new DiGraph();
+        Set<String> unexploredStates = new HashSet<>();
+        Set<String> exploredStates = new HashSet<>();
+        LinkedList<MarioWorld> unexploredWorlds = new LinkedList<>();
+
+        unexploredWorlds.add(this.world.clone());
+        unexploredStates.add(this.world.getMarioStateString());
+
+        while (unexploredWorlds.size() > 0) {
+            // Pop off next state in unexplored queue
+            MarioWorld curWorld = unexploredWorlds.poll();
+            String curState = curWorld.getMarioStateString();
+            unexploredStates.remove(curState);
+
+            // Add cur state to explored set
+            exploredStates.add(curState);
+
+            // Test each possible action
+            for (Map.Entry<Integer, boolean[]> entry: possibleActions.entrySet()) {
+                Integer actionId = entry.getKey();
+                boolean[] action = entry.getValue();
+
+                // Get the next state
+                MarioWorld nextWorld = curWorld.clone();
+                nextWorld.update(action);
+                String nextState = nextWorld.getMarioStateString();
+
+                // Add next world to queue to explore if it has not been explored already
+                if (!exploredStates.contains(nextState) && !unexploredStates.contains(nextState)) {
+                    unexploredStates.add(nextState);
+                    unexploredWorlds.add(nextWorld);
+                    graph.addNode(nextState);
+                }
+
+                // Add edge to graph or update list of actions for edge if it already exists
+                graph.addEdge(curState, nextState, actionId);
+            }
+
+        }
+        return graph;
     }
 
     private MarioResult gameLoop(String level, int timer, int marioState, boolean visual, int fps) {

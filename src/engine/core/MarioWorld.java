@@ -290,6 +290,44 @@ public class MarioWorld {
         return sprite instanceof Enemy || sprite instanceof FlowerEnemy || sprite instanceof BulletBill;
     }
 
+    public String getMarioStateString() {
+
+        String x = Integer.toString((int) this.mario.x);
+        String y = Integer.toString((int) this.mario.y);
+        String xa = Integer.toString((int) this.mario.xa);
+        String ya = Integer.toString((int) this.mario.ya);
+//        String x = Float.toString(this.mario.x);
+//        String y = Float.toString(this.mario.y);
+//        String xa = Float.toString(this.mario.xa);
+//        String ya = Float.toString(this.mario.ya);
+        String onGround = this.mario.onGround ? "1" : "0";
+        String goalReached = this.mario.x > this.level.exitTileX * 16 ? "1" : "0";
+        String isDead = this.mario.alive ? "0" : "1";
+        return String.join(",", new String[]{x,y,xa,ya,onGround,goalReached,isDead});
+    }
+
+//    public MarioWorld fromMarioStateString(String marioStateString) {
+//
+//        String stateComponents[] = marioStateString.split(",");
+//        this.mario.x = Float.parseFloat(stateComponents[0]);
+//        this.mario.y = Float.parseFloat(stateComponents[1]);
+//        this.mario.xa = Float.parseFloat(stateComponents[2]);
+//        this.mario.ya = Float.parseFloat(stateComponents[3]);
+//        this.mario.onGround = stateComponents[4].equals("1");
+//
+//        if (stateComponents[5].equals("1")) {
+//            this.gameStatus = GameStatus.WIN;
+//        }
+//        else if (stateComponents[6].equals("1")) {
+//            this.gameStatus = GameStatus.LOSE;
+//            this.mario.alive = false;
+//        } else {
+//            this.gameStatus = GameStatus.RUNNING;
+//        }
+//
+//        return this.clone();
+//    }
+
     public void update(boolean[] actions) {
         if (this.gameStatus != GameStatus.RUNNING) {
             return;
